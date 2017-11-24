@@ -1,0 +1,58 @@
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+	<span id="member"></span>
+	<ul id="chat"></ul>
+	<form action="" id="chat-form">
+		<input type="text" id="chat-input">
+		<input type="submit" value="Send">
+	</form>
+	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript">
+		const socket = io.connect('http://localhost:8080'),
+			  member = document.getElementById('member'),
+			  chat = document.getElementById('chat'),
+			  chatForm = document.getElementById('chat-form'),
+			  chatInput = document.getElementById('chat-input');
+	
+		chatForm.addEventListener('submit', function(e) {
+			e.preventDefault();
+			let message = chatInput.value;
+			socket.emit('messages', message);
+			chatInput.value = "";
+		});
+
+		function insertMessage(data, myMessage) {
+			let li = document.createElement('li');
+			if(myMessage) {
+				li.style.color = "green";
+			}
+			li.innerText += data + "\n";
+			chat.appendChild(li);
+		}
+
+		socket.on('connect', function() {
+			let nickname = prompt("What is your nickname?");
+			socket.emit('join', nickname);
+		});
+
+		socket.on('chat', function(mem) {
+			member.innerText += mem + "\n";
+			setTimeout(() => {
+				member.innerText = "";
+			}, 5000);	 
+		});
+
+		socket.on('messages', function(data) {
+			insertMessage(data);
+		});
+
+		socket.on('myMessage', function(data) {
+			insertMessage(data, true);
+		});
+	</script>
+</body>
+</html>
